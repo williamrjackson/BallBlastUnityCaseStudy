@@ -5,17 +5,15 @@ using UnityEngine;
 public class Projectile : MonoBehaviour
 {
     [SerializeField]
-    private float speed = 10f;
-    [SerializeField]
     private float maxY = 10f;
     [SerializeField]
     private int initialPoolSize = 50;
     [SerializeField]
     private Transform projectilePoolParent;
     [SerializeField]
-    Transform[] subProjectiles;
+    Bullet[] subProjectiles;
 
-    private float maxSpacing = .3f;
+    private float maxSpacing = .18f;
     private float yPosForFullWidth = -.65f;
     private Wrj.LayoutGroup3d layoutGroup;
     private static Projectile prototypeProjectile;
@@ -60,6 +58,10 @@ public class Projectile : MonoBehaviour
             prototypeProjectile.CreateNewProjectile();
         }
         Projectile toServe = projectilePool[0];
+        foreach(Bullet bullet in toServe.subProjectiles)
+        {
+            bullet.Restore();
+        }
         projectilePool.Remove(toServe);
         toServe.transform.position = prototypeProjectile.transform.position;
         toServe.transform.rotation = prototypeProjectile.transform.rotation;
@@ -70,7 +72,7 @@ public class Projectile : MonoBehaviour
     {
         count = Mathf.Clamp(count, 1, subProjectiles.Length);
         int i = 0;
-        foreach (Transform item in subProjectiles)
+        foreach (Bullet item in subProjectiles)
         {
             item.gameObject.SetActive(i < count);
             i++;
@@ -80,7 +82,7 @@ public class Projectile : MonoBehaviour
 
     void Update()
     {
-        transform.position = transform.PosInWorldDir(up: speed * Time.deltaTime);
+        transform.position = transform.PosInWorldDir(up: GameManager.Instance.projectileSpeed * Time.deltaTime);
         float y = transform.position.y;
         if (y > maxY)
         {

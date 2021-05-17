@@ -22,10 +22,21 @@ public class ProjectileManager : MonoBehaviour
     {
         while(true)
         {
+            float shootSpeed = 1f / GameManager.Instance.bps;
+            float initShootSpeed = shootSpeed;
+            int count = 1;
+            while (shootSpeed < GameManager.Instance.maxShootSpeed)
+            {
+                shootSpeed += initShootSpeed;
+                count++;
+            }
+
+            Debug.Log("Shoot Speed = " + (count * (1f/shootSpeed)));
+            
             Projectile shotProjectile = Projectile.GetFromPool();
             shotProjectile.gameObject.SetActive(true);
-            shotProjectile.SetCount(Random.Range(4, 6));
-            yield return new WaitForSeconds(.1f);
+            shotProjectile.SetCount(count);
+            yield return new WaitForSeconds(shootSpeed);
         }
     }
 }

@@ -4,41 +4,37 @@ using UnityEngine;
 
 public class TargetMovement : MonoBehaviour
 {
+    public bool isMovingRight = true;
     [SerializeField]
-    bool isMovingRight;
+    private float horizontalSpeed = 5f;
     [SerializeField]
-    float horizontalSpeed = 2.5f;
+    private float peekY;
     [SerializeField]
-    float peekY;
+    private float bounceGroundOffset = 0f;
     [SerializeField]
-    float airTime = 3f;
+    private float bounceAirTime = 3f;
     [SerializeField]
     Wrj.Utils.MapToCurve bounceCurve;
     [SerializeField]
     BoxCollider2D floorCollider;
     [SerializeField]
-    CircleCollider2D targetCollider;
-
+    private CircleCollider2D targetCollider;
     private Coroutine bounceRoutine;
+    private float rotationSpeed = 0f;
 
-    float bottomYPosition => floorCollider.transform.position.y + (floorCollider.transform.lossyScale.y * .5f) + targetCollider.radius;
+    private float BottomYPosition => floorCollider.transform.position.y + (floorCollider.transform.lossyScale.y * .5f) + targetCollider.radius + bounceGroundOffset;
     
-    private void OnEnable()
+    private void Awake() 
     {
-        TargetMoving = true;
+        rotationSpeed = Random.Range(-15f, 15f);
     }
-    private void OnDisable()
-    {
-        TargetMoving = false;
-    }
+
     public bool TargetMoving
     {
-        get
-        {
+        get{
             return bounceRoutine != null;
         }
-        set
-        {
+        set{
             if (value)
             {
                 bounceRoutine = StartCoroutine(BounceControlledYManager());
@@ -50,10 +46,19 @@ public class TargetMovement : MonoBehaviour
             }
         }
     }
+    
+    private void OnEnable()
+	{
+        TargetMoving = true;
+    }
+    private void OnDisable()
+    {
+       TargetMoving = false;
+    }
 
     void Update()
     {
-        if(isMovingRight)
+        if (isMovingRight)
         {
             transform.position += Vector3.right * (horizontalSpeed * Time.deltaTime);
         }
@@ -61,27 +66,33 @@ public class TargetMovement : MonoBehaviour
         {
             transform.position -= Vector3.right * (horizontalSpeed * Time.deltaTime);
         }
-        transform.position = transform.position.With(y: bounceControlledY);
+        Vector3 rotation = transform.localEulerAngles;
+        rotation.z += rotationSpeed * Time.deltaTime;
+        transform.localEulerAngles = rotation;
+
+        transform.position = transform.position.With(y:bounceControlledY);
     }
 
-    private void BounceProducedure()
+    private void BounceProcedure()
     {
-        // Cam shake, particle play, sound fx, etc.
+        // Bounce particles, sound effect, camerashake...
         Debug.Log("Boing!!!");
     }
-    private float bounceControlledY;
 
+    private float bounceControlledY;
     private IEnumerator BounceControlledYManager()
     {
+        bounceControlledY = transform.position.y;
         while (true)
         {
-            // Fall down
-            yield return bounceCurve.ManipulateFloat(x => bounceControlledY = x, transform.position.y, bottomYPosition, airTime * .5f, mirrorCurve: true, onDone: () => 
+            // Fall down..
+            yield return bounceCurve.ManipulateFloat(x => bounceControlledY = x, transform.position.y, BottomYPosition, bounceAirTime * .5f, mirrorCurve:true, onDone:
+            () =>
             {
-                // BounceProducedure();
+                BounceProcedure();
             }).coroutine;
             // Bounce up...
-            yield return bounceCurve.ManipulateFloat(x => bounceControlledY = x, bottomYPosition, peekY, airTime * .5f, mirrorCurve: false).coroutine;
+            yield return bounceCurve.ManipulateFloat(x => bounceControlledY = x, BottomYPosition, peekY, bounceAirTime * .5f).coroutine;  
         }
     }
 
@@ -90,14 +101,13 @@ public class TargetMovement : MonoBehaviour
         Wall wall = other.GetComponent<Wall>();
         if (wall != null)
         {
+            // Debug.Log("Hit " + wall.name);
             if (wall.wallType == Wall.WallType.Left)
             {
-                Debug.Log("LeftWall");
                 isMovingRight = true;
             }
             else if (wall.wallType == Wall.WallType.Right)
             {
-                Debug.Log("RightWall");
                 isMovingRight = false;
             }
         }
