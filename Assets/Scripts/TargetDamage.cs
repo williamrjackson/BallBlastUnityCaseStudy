@@ -13,8 +13,16 @@ public class TargetDamage : MonoBehaviour
     private Gradient gradient;
     [SerializeField]
     private SpriteRenderer tintSprite;
+    [SerializeField]
+    private ParticleSystem explosionParticles;
+    [SerializeField]
+    private TargetMovement targetMovement;
+    [SerializeField]
+    private CircleCollider2D circleCollider2D;
     private int upperGradientValue => GameManager.Instance.bps * (GameManager.Instance.firePower / 100) * 2;
     private Wrj.Utils.MapToCurve.Manipulation manipulation;
+    private bool hasExploded = false;
+
     void Start()
     {
         Value = initialValue;
@@ -39,10 +47,23 @@ public class TargetDamage : MonoBehaviour
     public void DecValue()
     {
         Value -= GameManager.Instance.firePower / 100;
-        if (Value < 1)
+        if (Value < 1 && !hasExploded)
         {
-            Destroy(gameObject);
+            Explode();
         }
+    }
+
+    private void Explode()
+    {
+        hasExploded = true;
+        circleCollider2D.enabled = false;
+        targetMovement.enabled = false;
+        tintSprite.enabled = false;
+        valueReadout.enabled = false;
+        explosionParticles.Play();
+        
+        //Schedule Destroy
+        Destroy(gameObject, 3f);
     }
 
     private void OnTriggerEnter2D(Collider2D other)
