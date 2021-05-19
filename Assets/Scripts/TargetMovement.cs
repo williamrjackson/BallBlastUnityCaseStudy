@@ -21,14 +21,14 @@ public class TargetMovement : MonoBehaviour
     private CircleCollider2D targetCollider;
     private Coroutine bounceRoutine;
     private float rotationSpeed = 0f;
-
+    
     private float BottomYPosition => floorCollider.transform.position.y + (floorCollider.transform.lossyScale.y * .5f) + targetCollider.radius + bounceGroundOffset;
     
     private void Awake() 
     {
         rotationSpeed = Random.Range(-15f, 15f);
     }
-
+    public Target parentTarget;
     public bool TargetMoving
     {
         get{

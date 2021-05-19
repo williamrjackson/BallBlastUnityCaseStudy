@@ -19,16 +19,18 @@ public class TargetDamage : MonoBehaviour
     private TargetMovement targetMovement;
     [SerializeField]
     private CircleCollider2D circleCollider2D;
-    private int upperGradientValue => GameManager.Instance.bps * (GameManager.Instance.firePower / 100) * 2;
+    private int upperGradientValue => GameManager.Instance.bps * (GameManager.Instance.firePower / 100);
     private Wrj.Utils.MapToCurve.Manipulation manipulation;
     private bool hasExploded = false;
 
+    public Target parentTarget;
     void Start()
     {
-        Value = initialValue;
+        if (_value < 0)
+            Value = initialValue;
     }
 
-    private int _value;
+    private int _value = -1;
     public int Value
     {
         get => _value;
@@ -39,9 +41,19 @@ public class TargetDamage : MonoBehaviour
             SetColor(_value);
         }
     }
+    public void SetRootValue(int rootVal)
+    {
+        initialValue = rootVal;
+        Value = rootVal;
+    }
+    public int GetRootVal()
+    {
+        return initialValue;
+    }
+
     private void SetColor(int value)
     {
-        value = Mathf.Clamp(value, 0, upperGradientValue);
+        value = Mathf.Clamp(value, 1, upperGradientValue);
         tintSprite.color = gradient.Evaluate(Mathf.InverseLerp(0f, upperGradientValue, value));
     }
     public void DecValue()
@@ -58,12 +70,17 @@ public class TargetDamage : MonoBehaviour
         hasExploded = true;
         circleCollider2D.enabled = false;
         targetMovement.enabled = false;
+        parentTarget.enabled = false;
         tintSprite.enabled = false;
         valueReadout.enabled = false;
         explosionParticles.Play();
+        if (parentTarget.ChildSpawner != null)
+        {
+            parentTarget.ChildSpawner.InstantiateChildren();
+        }
         
         //Schedule Destroy
-        Destroy(gameObject, 3f);
+        Destroy(gameObject, 2f);
     }
 
     private void OnTriggerEnter2D(Collider2D other)

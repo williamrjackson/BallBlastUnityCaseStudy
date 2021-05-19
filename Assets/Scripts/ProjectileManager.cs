@@ -30,8 +30,7 @@ public class ProjectileManager : MonoBehaviour
                 shootSpeed += initShootSpeed;
                 count++;
             }
-
-            Debug.Log("Shoot Speed = " + (count * (1f/shootSpeed)));
+            // Debug.Log("Shoot Speed = " + (count * (1f/shootSpeed)));
             
             Projectile shotProjectile = Projectile.GetFromPool();
             shotProjectile.gameObject.SetActive(true);
